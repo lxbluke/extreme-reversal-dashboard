@@ -433,7 +433,7 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
                     <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8"><b>当日流入TOP</b> {inflow_html}</div>
                     <div class="label" style="font-size:12px;line-height:1.8"><b>当日流出TOP</b> {outflow_html}</div>
                     <details style="margin-top:4px;font-size:12px;color:var(--text-secondary)">
-                        <summary style="cursor:pointer">📊 查看5日趋势</summary>
+                        <summary style="cursor:pointer">📊 查看5日趋势详情</summary>
                         <div style="margin-top:4px;line-height:1.8"><b>5日流入TOP</b> {in5_html}</div>
                         <div style="line-height:1.8"><b>5日流出TOP</b> {out5_html}</div>
                         <div style="margin-top:4px;color:{'#4CAF50' if flow_note else 'var(--text-secondary)'}">{flow_note}</div>
@@ -443,30 +443,72 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
     
     # 内联条形图HTML
     
-    # 预计算条形图HTML（避免f-string嵌套问题）
-    bar_chart_extreme = ""
+    # 预计算条形图HTML + 资金趋势图
     bar_chart_all = ""
+    fund_trend_bars_html = ""
     try:
-        ext_bars = []
-        for s in extreme_signals[:10]:
-            nm = s.get("asset_name", "")
-            sc = s.get("composite_score", 0)
-            wdt = min(abs(sc) * 100, 100)
-            clr = "#4CAF50" if sc < 0 else "#DC3545"
-            ext_bars.append('<div class="bar-row"><span class="bar-label">' + nm + '</span><div class="bar-track"><div class="bar-fill" style="width:' + str(round(wdt)) + '%;background:' + clr + '"></div></div><span class="bar-score" style="color:' + clr + '">' + "{:+.2f}".format(sc) + '</span></div>')
-        bar_chart_extreme = "\n".join(ext_bars)
+        # 信号评分条（加等级标签 + 排序）
+        def _get_level_label(sc):
+            if sc < -0.75: return "S+"
+            if sc < -0.50: return "A+"
+            if sc < -0.25: return "B+"
+            if sc > 0.75: return "S-"
+            if sc > 0.50: return "A-"
+            if sc > 0.25: return "B-"
+            return "N"
         
+        def _get_level_color(sc):
+            if sc < -0.75: return "#006400"
+            if sc < -0.50: return "#28A745"
+            if sc < -0.25: return "#90EE90"
+            if sc > 0.75: return "#8B0000"
+            if sc > 0.50: return "#DC3545"
+            if sc > 0.25: return "#FFB6C1"
+            return "#808080"
+        
+        sorted_signals = sorted(signals, key=lambda s: s.get("composite_score", 0))
         all_bars = []
-        for s in signals[:12]:
+        for s in sorted_signals[:12]:
             nm = s.get("asset_name", "")
             sc = s.get("composite_score", 0)
             wdt = min(abs(sc) * 100, 100)
             clr = "#4CAF50" if sc < 0 else "#DC3545"
-            all_bars.append('<div class="bar-row"><span class="bar-label">' + nm + '</span><div class="bar-track"><div class="bar-fill" style="width:' + str(round(wdt)) + '%;background:' + clr + '"></div></div><span class="bar-score" style="color:' + clr + '">' + "{:+.2f}".format(sc) + '</span></div>')
+            lvl = _get_level_label(sc)
+            lvl_clr = _get_level_color(sc)
+            all_bars.append('<div class="bar-row"><span class="bar-label">' + nm + '</span><span class="bar-level" style="color:' + lvl_clr + ';font-weight:700;font-size:11px;width:28px">' + lvl + '</span><div class="bar-track"><div class="bar-fill" style="width:' + str(round(wdt)) + '%;background:' + clr + '"></div></div><span class="bar-score" style="color:' + clr + '">' + "{:+.2f}".format(sc) + '</span></div>')
         bar_chart_all = "\n".join(all_bars)
+        
+        # 资金流向趋势条（取流入流出TOP3各展示1日/5日对比）
+        trend_bars = []
+        if sector_fund_ranking:
+            all_sectors_for_trend = []
+            for item in sector_fund_ranking.get("inflow_top5", [])[:3]:
+                all_sectors_for_trend.append(item.get("name",""))
+            for item in sector_fund_ranking.get("outflow_top5", [])[:3]:
+                all_sectors_for_trend.append(item.get("name",""))
+            
+            for nm in all_sectors_for_trend:
+                d1 = 0; d5 = 0
+                for item in sector_fund_ranking.get("inflow_top5", []) + sector_fund_ranking.get("outflow_top5", []):
+                    if item.get("name") == nm:
+                        d1 = item.get("1日", 0) or item.get("main_flow", 0)
+                for item in sector_fund_ranking.get("inflow_top5_5d", []) + sector_fund_ranking.get("outflow_top5_5d", []):
+                    if item.get("name") == nm:
+                        d5 = item.get("5日", 0)
+                
+                d1_str = _format_flow(d1)
+                d5_str = _format_flow(d5)
+                d1_pct = min(abs(d1) / 1e9 * 10, 100)  # 归一化到0-100%
+                d5_pct = min(abs(d5) / 1e9 * 10, 100)
+                clr1 = "#4CAF50" if d1 >= 0 else "#DC3545"
+                clr5 = "#4CAF50" if d5 >= 0 else "#DC3545"
+                trend_bars.append(f'<div class="bar-row" style="margin-bottom:4px"><span class="bar-label">{nm}</span><div style="width:80px;font-size:11px;color:var(--text-secondary)">1日</div><div class="bar-track" style="height:10px"><div class="bar-fill" style="width:{d1_pct:.0f}%;background:{clr1};height:10px"></div></div><span class="bar-score" style="font-size:11px;color:{clr1};width:70px">{d1_str}</span></div>')
+                trend_bars.append(f'<div class="bar-row" style="margin-bottom:8px"><span class="bar-label"></span><div style="width:80px;font-size:11px;color:var(--text-secondary)">5日</div><div class="bar-track" style="height:10px"><div class="bar-fill" style="width:{d5_pct:.0f}%;background:{clr5};height:10px"></div></div><span class="bar-score" style="font-size:11px;color:{clr5};width:70px">{d5_str}</span></div>')
+        
+        fund_trend_bars_html = "\n".join(trend_bars) if trend_bars else "暂无资金数据"
     except Exception:
-        bar_chart_extreme = "<!-- 图表渲染异常 -->"
         bar_chart_all = "<!-- 图表渲染异常 -->"
+        fund_trend_bars_html = "<!-- 资金趋势渲染异常 -->"
     html = f'''<!DOCTYPE html>
     <html lang="zh-CN">
     <head>
@@ -641,8 +683,9 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
             .row-pe {{ width: 150px; min-width: 140px; text-align: right; font-size: 13px; }}
             .row-range {{ font-size: 11px; color: var(--text-secondary); }}
             .row-ret {{ width: 80px; min-width: 70px; text-align: right; font-size: 13px; font-family: 'Courier New', monospace; }}
-            .row-tool {{ flex: 1; min-width: 100px; text-align: right; font-size: 13px; font-family: 'Courier New', monospace; font-weight: 600; }}
-            .row-pos {{ width: 60px; min-width: 60px; text-align: right; font-size: 13px; font-weight: 600; }}
+        .row-tool {{ flex: 1; min-width: 100px; text-align: right; font-size: 13px; font-family: 'Courier New', monospace; font-weight: 600; }}
+        .row-pos {{ width: 60px; min-width: 60px; text-align: right; font-size: 13px; font-weight: 600; }}
+        .bar-level {{ text-align: center; flex-shrink: 0; }}
             .row-detail {{
                 max-height: 0;
                 overflow: hidden;
@@ -793,20 +836,9 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
                     </div>
                 </div>
                 <div class="chart-container">
-                    <h3 style="margin-bottom:8px;font-size:15px">📈 股价性价比 (ERP)</h3>
-                    <div style="font-size:13px;line-height:1.8;color:var(--text-secondary)">
-                        <div>公式：ERP = 1/PE - 10年期国债收益率</div>
-                        <div>衡量「买股票比买债券多赚多少」</div>
-                        <div style="margin-top:6px">
-                            <span style="color:#006400">ERP > 5%</span> = 股票极度低估，应买股票 ⬅️<br>
-                            <span style="color:#4CAF50">ERP 3%~5%</span> = 股票有吸引力<br>
-                            <span style="color:#FFC107">ERP 2%~3%</span> = 中性区间<br>
-                            <span style="color:#FF9800">ERP 1%~2%</span> = 股票偏高估<br>
-                            <span style="color:#F44336">ERP < 1%</span> = 股票极度高估，应买债券 ➡️
-                        </div>
-                        <div style="margin-top:6px;padding:6px;background:rgba(255,255,255,0.04);border-radius:4px">
-                            当前ERP: <b>{erp_value_display}</b> — {erp_status.get("advice","")}
-                        </div>
+                    <h3 style="margin-bottom:8px;font-size:15px">📈 板块资金流入趋势</h3>
+                    <div class="fund-trend-chart" style="font-size:13px;color:var(--text-secondary);line-height:1.8">
+                        {fund_trend_bars_html}
                     </div>
                 </div>
             </div>
