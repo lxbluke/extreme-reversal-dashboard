@@ -331,6 +331,57 @@ def get_fund_flow(code: str) -> Dict:
     return result
 
 
+def get_fund_flow_history(pt_code: str, days: int = 12) -> List[Dict]:
+    """
+    获取板块每日资金流向历史
+    命令: fund flow <pt代码> --start <日期> --end <日期>
+    
+    Returns:
+        [{"date": "2026-07-14", "main_flow": -1392389410.0}, ...]
+    """
+    from datetime import datetime, timedelta
+    end = datetime.now()
+    # 估算days个交易日（按1.4倍日历日估算周末）
+    start = end - timedelta(days=int(days * 1.4) + 5)
+    start_str = start.strftime("%Y-%m-%d")
+    end_str = end.strftime("%Y-%m-%d")
+    
+    output = _run_cli(f"fund flow {pt_code} --start {start_str} --end {end_str}")
+    if not output:
+        return []
+    
+    result = []
+    lines = output.split("\n")
+    header_line = None
+    data_start = False
+    
+    for i, line in enumerate(lines):
+        if line.startswith("|") and "date" in line.lower() and "MainNetFlow" in line:
+            header_line = line
+            headers = [h.strip() for h in header_line.split("|") if h.strip()]
+            # 数据行从i+2开始
+            for j in range(i + 2, len(lines)):
+                row = lines[j]
+                if not row.startswith("|"):
+                    continue
+                values = [v.strip() for v in row.split("|") if v.strip()]
+                if len(values) < 2:
+                    continue
+                row_data = {}
+                for h, v in zip(headers, values):
+                    if h == "date":
+                        row_data["date"] = v
+                    elif h == "MainNetFlow":
+                        row_data["main_flow"] = _parse_number(v)
+                if "date" in row_data and "main_flow" in row_data:
+                    result.append(row_data)
+            break
+    
+    # 按日期排序（从旧到新）
+    result.sort(key=lambda x: x.get("date", ""))
+    return result[-days:]  # 只保留最近days条
+
+
 def get_north_holding(code: str) -> Dict:
     """
     获取北向资金持仓（个股或行业板块）

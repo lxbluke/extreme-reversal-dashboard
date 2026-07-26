@@ -478,61 +478,54 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
             all_bars.append('<div class="bar-row"><span class="bar-label">' + nm + '</span><span class="bar-level" style="color:' + lvl_clr + ';font-weight:700;font-size:11px;width:28px">' + lvl + '</span><div class="bar-track"><div class="bar-fill" style="width:' + str(round(wdt)) + '%;background:' + clr + '"></div></div><span class="bar-score" style="color:' + clr + '">' + "{:+.2f}".format(sc) + '</span></div>')
         bar_chart_all = "\n".join(all_bars)
 
-        # 资金流向趋势条 — 交互式可切换（点击板块名切换显示）
+        # 资金流向趋势 — 每日竖柱状图（可点击切换行业）
         fund_trend_bars_html = ""
-        fund_trend_data_json = "[]"
         if sector_fund_ranking:
-            # 收集所有有数据的板块
-            sector_data_map = {}
-            for key_in, key_out, period_label in [("inflow_top5", "outflow_top5", "1日"),
-                                                    ("inflow_top5_5d", "outflow_top5_5d", "5日"),
-                                                    ("inflow_top5_10d", "outflow_top5_10d", "10日")]:
-                for item in sector_fund_ranking.get(key_in, []) + sector_fund_ranking.get(key_out, []):
-                    nm = item.get("name", "")
-                    val = item.get(period_label, item.get("main_flow", 0)) if period_label != "main_flow" else item.get("main_flow", 0)
-                    if nm not in sector_data_map:
-                        sector_data_map[nm] = {}
-                    sector_data_map[nm][period_label] = val
-
-            # 构建板块标签 + JSON数据
-            sector_names = list(sector_data_map.keys())
-            tabs_html = " ".join([f'<span class="fund-tab" onclick="showSector(this,\'{s}\')" style="cursor:pointer;padding:2px 8px;margin:2px;border-radius:4px;font-size:12px;display:inline-block;background:rgba(255,255,255,0.06)">{s}</span>' for s in sector_names])
-
-            # 为每个板块生成柱状图HTML
-            sectors_charts = {}
-            for nm, periods in sector_data_map.items():
-                bars = []
-                for lbl in ["1日", "5日", "10日", "20日"]:
-                    val = periods.get(lbl, 0)
-                    if val == 0 and lbl == "20日":
-                        val = periods.get("1日", 0) * 3  # fallback
-                    pct = min(abs(val) / max(abs(val) if abs(val) > 0 else 1, 1), 1.0) * 100
-                    clr = "#4CAF50" if val >= 0 else "#DC3545"
-                    val_str = _format_flow(val)
-                    bars.append(f'<div class="bar-row" style="margin:3px 0"><span style="width:35px;font-size:11px;color:var(--text-secondary);display:inline-block">{lbl}</span><div class="bar-track" style="height:14px;display:inline-block;width:120px"><div class="bar-fill" style="width:{pct:.0f}%;background:{clr};height:14px"></div></div><span style="font-size:11px;color:{clr};margin-left:6px;font-family:monospace">{val_str}</span></div>')
-                sectors_charts[nm] = "".join(bars)
-
-            # 用JSON传递数据，JS切换可见性
-            first_sector = sector_names[0] if sector_names else ""
-            charts_container = '<div id="fund-chart-container">'
-            for nm, chart_html in sectors_charts.items():
-                display = "block" if nm == first_sector else "none"
-                charts_container += f'<div class="sector-fund-chart" data-sector="{nm}" style="display:{display}">{chart_html}</div>'
-            charts_container += '</div>'
-
-            fund_trend_bars_html = f'<div style="margin-bottom:6px">{tabs_html}</div>{charts_container}'
-            fund_trend_bars_html += '''<script>
+            # 获取所有行业的每日资金流历史
+            sector_daily_data = sector_fund_ranking.get("daily_histories", {})
+            if not sector_daily_data:
+                # 回退：从mock数据的fund_flow_history取
+                sector_daily_data = sector_fund_ranking.get("fund_flow_histories", {})
+            
+            sector_names = list(sector_daily_data.keys())
+            
+            if sector_names:
+                # 构建标签栏
+                tabs_html = " ".join([f'<span class="fund-tab" onclick="showSector(this,\'{s}\')" style="cursor:pointer;padding:2px 10px;margin:2px;border-radius:4px;font-size:12px;display:inline-block;background:rgba(255,255,255,0.06)">{s}</span>' for s in sector_names])
+                
+                # 为每个行业生成竖柱状图
+                first_sector = sector_names[0]
+                charts_html = ""
+                for nm in sector_names:
+                    days_data = sector_daily_data.get(nm, [])
+                    max_val = max([abs(d.get("main_flow", 0)) for d in days_data]) if days_data else 1
+                    if max_val == 0: max_val = 1
+                    
+                    bars = ""
+                    for d in days_data:
+                        date_str = d.get("date", "")[-5:]  # "07-14"格式
+                        val = d.get("main_flow", 0)
+                        pct = abs(val) / max_val * 100
+                        clr = "#4CAF50" if val >= 0 else "#DC3545"
+                        val_str = _format_flow(val)
+                        bars += f'<div style="display:flex;flex-direction:column;align-items:center;width:36px;flex-shrink:0"><div style="font-size:9px;color:{clr};font-weight:600;margin-bottom:2px">{val_str.replace("亿","")}</div><div style="width:24px;height:{max(4, pct)}px;background:{clr};border-radius:3px 3px 0 0;opacity:0.85"></div><div style="font-size:9px;color:var(--text-secondary);margin-top:2px">{date_str}</div></div>'
+                    
+                    display = "flex" if nm == first_sector else "none"
+                    charts_html += f'<div class="sector-fund-chart" data-sector="{nm}" style="display:{display};justify-content:space-around;align-items:flex-end;padding:10px 0;min-height:160px;overflow-x:auto">{bars}</div>'
+                
+                fund_trend_bars_html = f'<div style="margin-bottom:6px">{tabs_html}</div>{charts_html}'
+                fund_trend_bars_html += '''<script>
 function showSector(el, name) {
     document.querySelectorAll('.fund-tab').forEach(function(t) {
         t.style.background = 'rgba(255,255,255,0.06)';
     });
     el.style.background = 'rgba(76,175,80,0.3)';
     document.querySelectorAll('.sector-fund-chart').forEach(function(c) {
-        c.style.display = c.getAttribute('data-sector') === name ? 'block' : 'none';
+        c.style.display = c.getAttribute('data-sector') === name ? 'flex' : 'none';
     });
 }
 </script>'''
-
+        
         fund_trend_bars_html = fund_trend_bars_html or "暂无资金数据"
 
     except Exception as e:

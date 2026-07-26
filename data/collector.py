@@ -179,6 +179,23 @@ class DataCollector:
                 self.collection_errors.append(f"sector_{sector_name}: {e}")
                 sectors_data[sector_name] = {"name": sector_name, "pt_code": pt_code, "error": str(e)}
         
+        # 采集每日资金流历史（前10个行业）
+        hist_count = 0
+        for sector_name, sector_info in A_SHARE_SECTORS.items():
+            if hist_count >= 10:
+                break
+            pt_code = sector_info["pt_code"]
+            try:
+                from data.westock import get_fund_flow_history
+                hist = get_fund_flow_history(pt_code, days=12)
+                if hist:
+                    if sector_name in sectors_data and not sector_name.startswith("_"):
+                        sectors_data[sector_name]["fund_flow_history"] = hist
+                        hist_count += 1
+                    time.sleep(0.3)
+            except Exception as e:
+                self.collection_errors.append(f"fund_hist_{sector_name}: {e}")
+        
         # 从sectors_data中提取资金流排名（多维度）
         fund_ranking = {"inflow_top5": [], "outflow_top5": [],
                         "inflow_top5_5d": [], "outflow_top5_5d": [],

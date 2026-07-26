@@ -206,9 +206,13 @@ def run_daily(quick: bool = False, mock: bool = False):
                     {"name": "电子", "10日": -234567890123},
                     {"name": "半导体", "10日": -123456789012},
                     {"name": "医药生物", "10日": -98765432109}
-                ]
-            }},
-            "mock": True,
+                ],
+                "daily_histories": {
+                    "银行": [{"date":"2026-07-13","main_flow":1234567890},{"date":"2026-07-14","main_flow":2345678901},{"date":"2026-07-15","main_flow":3456789012},{"date":"2026-07-16","main_flow":-1234567890},{"date":"2026-07-17","main_flow":4567890123},{"date":"2026-07-20","main_flow":5678901234},{"date":"2026-07-21","main_flow":-2345678901},{"date":"2026-07-22","main_flow":6789012345},{"date":"2026-07-23","main_flow":7890123456},{"date":"2026-07-24","main_flow":12345678901}],
+                    "电子": [{"date":"2026-07-13","main_flow":-1234567890},{"date":"2026-07-14","main_flow":-2345678901},{"date":"2026-07-15","main_flow":-3456789012},{"date":"2026-07-16","main_flow":-4567890123},{"date":"2026-07-17","main_flow":1234567890},{"date":"2026-07-20","main_flow":-5678901234},{"date":"2026-07-21","main_flow":-6789012345},{"date":"2026-07-22","main_flow":-7890123456},{"date":"2026-07-23","main_flow":-8901234567},{"date":"2026-07-24","main_flow":-55782975790}],
+                    "券商": [{"date":"2026-07-13","main_flow":987654321},{"date":"2026-07-14","main_flow":-1234567890},{"date":"2026-07-15","main_flow":2345678901},{"date":"2026-07-16","main_flow":3456789012},{"date":"2026-07-17","main_flow":-2345678901},{"date":"2026-07-20","main_flow":4567890123},{"date":"2026-07-21","main_flow":5678901234},{"date":"2026-07-22","main_flow":-3456789012},{"date":"2026-07-23","main_flow":6789012345},{"date":"2026-07-24","main_flow":9876543210}]
+                }
+            }},"mock": True,
         }
     elif quick:
         collected_data = quick_collect_a_share()
@@ -320,6 +324,21 @@ def run_daily(quick: bool = False, mock: bool = False):
     
     # 提取板块资金流排名
     sector_fund_ranking = collected_data.get("a_share_sectors", {}).get("_fund_ranking")
+    
+    # 提取每日资金流历史
+    if not mock:
+        hist_data = {}
+        sectors_data = collected_data.get("a_share_sectors", {})
+        for name, sd in sectors_data.items():
+            if name.startswith("_"):
+                continue
+            hist = sd.get("fund_flow_history", [])
+            if hist:
+                hist_data[name] = hist[-12:]
+        if hist_data:
+            if not sector_fund_ranking:
+                sector_fund_ranking = {}
+            sector_fund_ranking["daily_histories"] = hist_data
     
     # 4.2 HTML仪表盘
     dashboard_path = save_dashboard(signals, market_data, signal_summary, trading_suggestions, sector_fund_ranking=sector_fund_ranking)
