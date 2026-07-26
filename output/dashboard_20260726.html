@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>全球大类资产极端状态反转策略 — 2026-07-26</title>
+        <style>
+            :root {
+                --bg: #0f1117;
+                --card-bg: #1a1d2e;
+                --text: #e0e0e0;
+                --text-secondary: #8890a4;
+                --border: #2a2d3e;
+                --accent: #4CAF50;
+                --danger: #F44336;
+                --warning: #FF9800;
+            }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+                background: var(--bg);
+                color: var(--text);
+                line-height: 1.6;
+            }
+            .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+            /* Header */
+            .header {
+                text-align: center;
+                padding: 30px 0;
+                border-bottom: 1px solid var(--border);
+                margin-bottom: 30px;
+            }
+            .header h1 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+            .header .subtitle { color: var(--text-secondary); font-size: 14px; }
+        
+            /* Market Overview */
+            .market-overview {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 12px;
+                margin-bottom: 30px;
+            }
+            .market-card {
+                background: var(--card-bg);
+                border-radius: 10px;
+                padding: 16px;
+                text-align: center;
+                border: 1px solid var(--border);
+            }
+            .market-card .value { font-size: 24px; font-weight: 700; margin: 8px 0; }
+            .market-card .label { color: var(--text-secondary); font-size: 13px; }
+        
+            /* Section */
+            .section {
+                margin-bottom: 30px;
+            }
+            .section-title {
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 16px;
+                padding-bottom: 8px;
+                border-bottom: 2px solid var(--border);
+            }
+        
+            /* Charts */
+            .charts-section {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+                margin-bottom: 30px;
+            }
+            .chart-container {
+                background: var(--card-bg);
+                border-radius: 12px;
+                padding: 20px;
+                border: 1px solid var(--border);
+            }
+            .chart-container canvas { max-height: 400px; }
+        
+            /* 内联条形图 */
+            .bar-chart {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+            .bar-row {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            .bar-label {
+                width: 80px;
+                font-size: 12px;
+                text-align: right;
+                flex-shrink: 0;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .bar-track {
+                flex: 1;
+                height: 18px;
+                background: rgba(255,255,255,0.06);
+                border-radius: 4px;
+                overflow: hidden;
+                min-width: 60px;
+            }
+            .bar-fill {
+                height: 100%;
+                border-radius: 4px;
+                transition: width 0.3s;
+                opacity: 0.85;
+            }
+            .bar-score {
+                width: 55px;
+                font-size: 12px;
+                font-weight: 600;
+                font-family: 'Courier New', monospace;
+                text-align: right;
+                flex-shrink: 0;
+            }
+        
+            /* Signal Table - 紧凑列表 */
+            .signal-table {
+                background: var(--card-bg);
+                border-radius: 10px;
+                border: 1px solid var(--border);
+                overflow: hidden;
+            }
+            .st-header {
+                display: flex;
+                align-items: center;
+                padding: 10px 14px;
+                background: rgba(255,255,255,0.04);
+                border-bottom: 1px solid var(--border);
+                font-size: 12px;
+                color: var(--text-secondary);
+                font-weight: 600;
+                gap: 8px;
+            }
+            .st-header span { white-space: nowrap; }
+            .sth-icon { width: 24px; min-width: 24px; }
+            .sth-level { width: 90px; min-width: 90px; }
+            .sth-name { width: 90px; min-width: 80px; }
+            .sth-score { width: 70px; min-width: 70px; text-align: right; }
+            .sth-pe { width: 150px; min-width: 140px; text-align: right; }
+            .sth-ret { width: 80px; min-width: 70px; text-align: right; }
+            .sth-tool { flex: 1; min-width: 100px; text-align: right; }
+            .sth-pos { width: 60px; min-width: 60px; text-align: right; }
+            .signal-row {
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                transition: background 0.15s;
+                border-bottom: 1px solid rgba(255,255,255,0.04);
+            }
+            .signal-row:hover { background: rgba(255,255,255,0.03); }
+            .signal-row:last-child { border-bottom: none; }
+            .row-main {
+                display: flex;
+                align-items: center;
+                padding: 10px 14px;
+                gap: 8px;
+                font-size: 14px;
+            }
+            .row-main span { white-space: nowrap; }
+            .row-icon { font-size: 14px; width: 24px; min-width: 24px; text-align: center; }
+            .row-level { font-weight: 700; font-size: 12px; width: 90px; min-width: 90px; }
+            .row-name { font-weight: 600; width: 90px; min-width: 80px; overflow: hidden; text-overflow: ellipsis; }
+            .row-score { font-weight: 700; font-size: 15px; width: 70px; min-width: 70px; text-align: right; font-family: 'Courier New', monospace; }
+            .row-pe { width: 150px; min-width: 140px; text-align: right; font-size: 13px; }
+            .row-range { font-size: 11px; color: var(--text-secondary); }
+            .row-ret { width: 80px; min-width: 70px; text-align: right; font-size: 13px; font-family: 'Courier New', monospace; }
+            .row-tool { flex: 1; min-width: 100px; text-align: right; font-size: 13px; font-family: 'Courier New', monospace; font-weight: 600; }
+            .row-pos { width: 60px; min-width: 60px; text-align: right; font-size: 13px; font-weight: 600; }
+            .row-detail {
+                max-height: 0;
+                overflow: hidden;
+                transition: max-height 0.25s ease;
+                padding: 0 14px;
+                background: rgba(0,0,0,0.15);
+            }
+            .row-detail.active { max-height: 200px; padding: 10px 14px; }
+            .row-detail-inner { font-size: 12px; color: var(--text-secondary); line-height: 1.8; }
+            .rd-col { padding: 2px 0; }
+            .section-divider {
+                display: flex;
+                align-items: center;
+                padding: 0 14px;
+                background: rgba(255,255,255,0.02);
+                border-bottom: 1px solid var(--border);
+                border-top: 1px solid var(--border);
+            }
+            .section-divider span { font-size: 12px; font-weight: 600; padding: 6px 0; color: var(--text-secondary); }
+            .fund-chip-inflow { color: #F44336; padding: 1px 0; }  /* 流出=红色（负值） */
+            .fund-chip-outflow { color: #4CAF50; padding: 1px 0; }  /* 流入=绿色（正值） */
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: var(--text-secondary);
+            }
+        
+            @media (max-width: 768px) {
+                .charts-section { grid-template-columns: 1fr; }
+                .signal-table { overflow-x: auto; }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <!-- Header -->
+            <div class="header">
+                <h1>🌐 全球大类资产极端状态反转策略</h1>
+                <div class="subtitle">2026-07-26 收盘日报 | 生成时间 13:12 CST | 仅供研究参考</div>
+            </div>
+        
+            <!-- 市场环境速览 -->
+            <div class="section">
+                <div class="section-title" style="font-size:16px; margin-bottom:8px">📊 市场环境速览</div>
+                <div class="market-overview">
+                    <div class="market-card" style="color:#4CAF50">
+                        <div class="label">股债性价比 (ERP)</div>
+                        <div class="value" style="font-size:22px">3.04%</div>
+                        <div class="label" style="font-size:12px; margin-top:4px">股票性价比中性，按策略执行</div>
+                        <div class="label" style="font-size:11px">ERP 3.0%（股债中性合理）</div>
+                    </div>
+                    <div class="market-card">
+                        <div class="label">市场情绪 (涨/跌)</div>
+                        <div class="value" style="font-size:22px">555/4940</div>
+                        <div class="label" style="font-size:11px">上涨555/下跌4940</div>
+                        <div class="label" style="font-size:11px;color: #F44336">上涨占比 10% ⚠️ 极弱</div>
+                    </div>
+                    <div class="market-card">
+                        <div class="label">主力资金 (替代北向)</div>
+                        <div class="value" style="font-size:22px">N/A</div>
+                        <div class="label" style="font-size:11px">当日主力净流入 | 北向仅季度级别</div>
+                    </div>
+                                    <div class="market-card" style="grid-column: span 2;">
+                    <div class="label" style="font-size:13px">📈 板块主力资金流向 TOP5</div>
+                    <div class="label" style="margin-top:4px;font-size:12px;line-height:1.8"><span class="fund-chip-inflow">银行 +123.5亿</span> <span class="fund-chip-inflow">券商 +98.8亿</span> <span class="fund-chip-inflow">煤炭 +56.8亿</span> <span class="fund-chip-inflow">公用事业 +34.6亿</span> <span class="fund-chip-inflow">钢铁 +12.3亿</span> </div>
+                    <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8"><span class="fund-chip-outflow">电子 -557.8亿</span> <span class="fund-chip-outflow">医药生物 -321.1亿</span> <span class="fund-chip-outflow">半导体 -284.6亿</span> <span class="fund-chip-outflow">计算机 -156.8亿</span> <span class="fund-chip-outflow">食品饮料 -98.8亿</span> </div>
+                </div>
+
+                    <div class="market-card">
+                        <div class="label">信号强度分布</div>
+                        <div class="value" style="font-size:20px">0S / 9A / 15总</div>
+                        <div class="label" style="font-size:11px">极端(S) / 显著(A) / 总信号数</div>
+                    </div>
+                    <div class="market-card">
+                        <div class="label">市场方向偏好</div>
+                        <div class="value" style="font-size:22px">
+                            <span style="color:#4CAF50">8做多</span>
+                            <span style="color:#808080">/</span>
+                            <span style="color:#F44336">7做空</span>
+                        </div>
+                        <div class="label" style="font-size:11px">做多信号数 / 做空信号数</div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 信号等级分布（底部附录） -->
+            <div class="section">
+                <details>
+                    <summary class="section-title" style="font-size:14px; cursor:pointer; border-bottom:none; display:inline-block">📋 信号等级分布详情</summary>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #006400">0</div>
+                            <div class="stat-label">S+ 强做多</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #28A745">5</div>
+                            <div class="stat-label">A+ 做多</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #90EE90">3</div>
+                            <div class="stat-label">B+ 观察偏多</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #808080">0</div>
+                            <div class="stat-label">N 中性</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #FFB6C1">3</div>
+                            <div class="stat-label">B- 观察偏空</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #DC3545">4</div>
+                            <div class="stat-label">A- 做空</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" style="color: #8B0000">0</div>
+                            <div class="stat-label">S- 强做空</div>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        
+            <!-- Charts -->
+            <div class="charts-section">
+                <div class="chart-container">
+                    <h3 style="margin-bottom:16px">📊 极端信号评分分布</h3>
+                    <div class="bar-chart">
+                        <div class="bar-row"><span class="bar-label">银行</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.82</span></div>
+<div class="bar-row"><span class="bar-label">医药生物</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.65</span></div>
+<div class="bar-row"><span class="bar-label">半导体</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.78</span></div>
+<div class="bar-row"><span class="bar-label">新能源</span><div class="bar-track"><div class="bar-fill" style="width:58%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.58</span></div>
+<div class="bar-row"><span class="bar-label">黄金</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.62</span></div>
+<div class="bar-row"><span class="bar-label">恒生科技</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.55</span></div>
+<div class="bar-row"><span class="bar-label">科技</span><div class="bar-track"><div class="bar-fill" style="width:52%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.52</span></div>
+<div class="bar-row"><span class="bar-label">房地产</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.72</span></div>
+<div class="bar-row"><span class="bar-label">原油(WTI)</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.55</span></div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3 style="margin-bottom:16px">📈 信号评分总览</h3>
+                    <div class="bar-chart">
+                        <div class="bar-row"><span class="bar-label">银行</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.82</span></div>
+<div class="bar-row"><span class="bar-label">医药生物</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.65</span></div>
+<div class="bar-row"><span class="bar-label">半导体</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.78</span></div>
+<div class="bar-row"><span class="bar-label">新能源</span><div class="bar-track"><div class="bar-fill" style="width:58%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.58</span></div>
+<div class="bar-row"><span class="bar-label">黄金</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.62</span></div>
+<div class="bar-row"><span class="bar-label">恒生科技</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.55</span></div>
+<div class="bar-row"><span class="bar-label">标普500</span><div class="bar-track"><div class="bar-fill" style="width:48%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.48</span></div>
+<div class="bar-row"><span class="bar-label">科技</span><div class="bar-track"><div class="bar-fill" style="width:52%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.52</span></div>
+<div class="bar-row"><span class="bar-label">券商</span><div class="bar-track"><div class="bar-fill" style="width:35%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.35</span></div>
+<div class="bar-row"><span class="bar-label">房地产</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.72</span></div>
+<div class="bar-row"><span class="bar-label">食品饮料</span><div class="bar-track"><div class="bar-fill" style="width:42%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.42</span></div>
+<div class="bar-row"><span class="bar-label">通信</span><div class="bar-track"><div class="bar-fill" style="width:44%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.44</span></div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- 信号总览（紧凑列表） -->
+            <div class="section">
+                <div class="section-title" style="font-size:16px">📋 信号总览</div>
+                <div class="signal-table">
+                    <div class="st-header">
+                        <span class="sth-icon"></span>
+                        <span class="sth-level">信号</span>
+                        <span class="sth-name">资产</span>
+                        <span class="sth-score">评分</span>
+                        <span class="sth-pe">核心估值(正常区间)</span>
+                        <span class="sth-ret">近3月</span>
+                        <span class="sth-tool">ETF标的</span>
+                        <span class="sth-pos">仓位</span>
+                    </div>
+                    <div class="section-divider"><span>🔴 做空信号区</span></div>
+                    
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #DC3545">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#DC3545">A- 做空</span>
+                <span class="row-name">半导体</span>
+                <span class="row-score" style="color:#DC3545">+0.78</span>
+                <span class="row-pe">23% <span class="row-range">(4~10x)</span></span>
+                <span class="row-ret">-27.3%</span>
+                <span class="row-tool">买Put sz159995</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.65 | 动量+0.40 | 情绪+0.57 | 叙事+0.59</div>
+                    <div class="rd-col"><b>做空半导体，买Put sz159995(芯片ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PS分位 23% (正常4~10x) | PE分位 15% | PB分位 19%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #DC3545">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#DC3545">A- 做空</span>
+                <span class="row-name">黄金</span>
+                <span class="row-score" style="color:#DC3545">+0.62</span>
+                <span class="row-pe">22% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-21.7%</span>
+                <span class="row-tool">2x usGLL</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.47 | 动量+0.46 | 情绪+0.56 | 叙事+0.37</div>
+                    <div class="rd-col"><b>做空黄金，买入2x反向ETF usGLL(黄金两倍做空ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 22% (正常15~35x) | PE分位 22% | PB分位 25%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">标普500</span>
+                <span class="row-score" style="color:#FFB6C1">+0.48</span>
+                <span class="row-pe">28% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-16.8%</span>
+                <span class="row-tool">1x usSH</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.50 | 动量+0.29 | 情绪+0.30 | 叙事+0.28</div>
+                    <div class="rd-col"><b>做空标普500，买入1x反向ETF usSH(标普500做空ETF(SH)/三倍做空(SPXU))，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 28% (正常15~35x) | PE分位 28% | PB分位 31%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #DC3545">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#DC3545">A- 做空</span>
+                <span class="row-name">科技</span>
+                <span class="row-score" style="color:#DC3545">+0.52</span>
+                <span class="row-pe">27% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-18.2%</span>
+                <span class="row-tool">usXLK</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.51 | 动量+0.40 | 情绪+0.48 | 叙事+0.44</div>
+                    <div class="rd-col"><b>做空科技，期权Put usXLK，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 27% (正常15~35x) | PE分位 27% | PB分位 29%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">通信</span>
+                <span class="row-score" style="color:#FFB6C1">+0.44</span>
+                <span class="row-pe">35% <span class="row-range">(2~5x)</span></span>
+                <span class="row-ret">-15.4%</span>
+                <span class="row-tool">融券 sh515880</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.29 | 动量+0.23 | 情绪+0.27 | 叙事+0.29</div>
+                    <div class="rd-col"><b>做空通信，ETF融券 sh515880，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PS分位 35% (正常2~5x) | PE分位 30% | PB分位 32%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #DC3545">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#DC3545">A- 做空</span>
+                <span class="row-name">原油(WTI)</span>
+                <span class="row-score" style="color:#DC3545">+0.55</span>
+                <span class="row-pe">25% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-19.2%</span>
+                <span class="row-tool">2x usSCO</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.49 | 动量+0.34 | 情绪+0.41 | 叙事+0.35</div>
+                    <div class="rd-col"><b>做空原油(WTI)，买入2x反向ETF usSCO(原油两倍做空ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 25% (正常15~35x) | PE分位 25% | PB分位 28%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">🔴</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">美元指数</span>
+                <span class="row-score" style="color:#FFB6C1">+0.40</span>
+                <span class="row-pe">32% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-14.0%</span>
+                <span class="row-tool">usUDN</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.27 | 动量+0.35 | 情绪+0.25 | 叙事+0.28</div>
+                    <div class="rd-col"><b>做空美元指数，反向ETF/期权 usUDN，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 32% (正常15~35x) | PE分位 32% | PB分位 34%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+                    <div class="section-divider"><span>🟢 做多信号区</span></div>
+                    
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #28A745">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#28A745">A+ 做多</span>
+                <span class="row-name">银行</span>
+                <span class="row-score" style="color:#28A745">-0.82</span>
+                <span class="row-pe">83% <span class="row-range">(0.5~1.5x)</span></span>
+                <span class="row-ret">+28.7%</span>
+                <span class="row-tool">sh512800</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.67 | 动量-0.72 | 情绪-0.70 | 叙事-0.67</div>
+                    <div class="rd-col"><b>做多银行，买入ETF sh512800(银行ETF华宝)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PB分位 83% (正常0.5~1.5x) | PE分位 87% | PB分位 83%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #28A745">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#28A745">A+ 做多</span>
+                <span class="row-name">医药生物</span>
+                <span class="row-score" style="color:#28A745">-0.65</span>
+                <span class="row-pe">79% <span class="row-range">(25~40x)</span></span>
+                <span class="row-ret">+22.8%</span>
+                <span class="row-tool">sh512010</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.51 | 动量-0.40 | 情绪-0.44 | 叙事-0.57</div>
+                    <div class="rd-col"><b>做多医药生物，买入ETF sh512010(医药ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 79% (正常25~40x) | PE分位 79% | PB分位 76%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #28A745">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#28A745">A+ 做多</span>
+                <span class="row-name">新能源</span>
+                <span class="row-score" style="color:#28A745">-0.58</span>
+                <span class="row-pe">76% <span class="row-range">(20~40x)</span></span>
+                <span class="row-ret">+20.3%</span>
+                <span class="row-tool">sh516160</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.59 | 动量-0.50 | 情绪-0.43 | 叙事-0.43</div>
+                    <div class="rd-col"><b>做多新能源，买入ETF sh516160(新能源ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 76% (正常20~40x) | PE分位 76% | PB分位 73%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #28A745">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#28A745">A+ 做多</span>
+                <span class="row-name">恒生科技</span>
+                <span class="row-score" style="color:#28A745">-0.55</span>
+                <span class="row-pe">75% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">+19.2%</span>
+                <span class="row-tool">sh513130</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.41 | 动量-0.33 | 情绪-0.47 | 叙事-0.48</div>
+                    <div class="rd-col"><b>做多恒生科技，买入ETF(QDII/港股) sh513130(恒生科技ETF(513130)/南方恒生科技(03033))，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 75% (正常15~35x) | PE分位 75% | PB分位 72%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">券商</span>
+                <span class="row-score" style="color:#90EE90">-0.35</span>
+                <span class="row-pe">64% <span class="row-range">(1~2.5x)</span></span>
+                <span class="row-ret">+12.2%</span>
+                <span class="row-tool">sh512880</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.29 | 动量-0.10 | 情绪-0.30 | 叙事-0.25</div>
+                    <div class="rd-col"><b>做多券商，买入ETF sh512880(证券ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PB分位 64% (正常1~2.5x) | PE分位 66% | PB分位 64%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #28A745">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#28A745">A+ 做多</span>
+                <span class="row-name">房地产</span>
+                <span class="row-score" style="color:#28A745">-0.72</span>
+                <span class="row-pe">79% <span class="row-range">(0.6~1.5x)</span></span>
+                <span class="row-ret">+25.2%</span>
+                <span class="row-tool">sh512200</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.55 | 动量-0.47 | 情绪-0.50 | 叙事-0.52</div>
+                    <div class="rd-col"><b>做多房地产，买入ETF sh512200(房地产ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PB分位 79% (正常0.6~1.5x) | PE分位 82% | PB分位 79%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">食品饮料</span>
+                <span class="row-score" style="color:#90EE90">-0.42</span>
+                <span class="row-pe">69% <span class="row-range">(25~45x)</span></span>
+                <span class="row-ret">+14.7%</span>
+                <span class="row-tool">sh515170</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.32 | 动量-0.43 | 情绪-0.39 | 叙事-0.36</div>
+                    <div class="rd-col"><b>做多食品饮料，买入ETF sh515170(食品饮料ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 69% (正常25~45x) | PE分位 69% | PB分位 67%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">🟢</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">10年美债</span>
+                <span class="row-score" style="color:#90EE90">-0.38</span>
+                <span class="row-pe">67% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">+13.3%</span>
+                <span class="row-tool">usTLT</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.37 | 动量-0.14 | 情绪-0.27 | 叙事-0.26</div>
+                    <div class="rd-col"><b>做多10年美债，买入ETF usTLT(20+年美债ETF(TLT)/7-10年美债(IEF))，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 67% (正常15~35x) | PE分位 67% | PB分位 65%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+                    <div class="section-divider"><span>🟡 观察区</span></div>
+                    
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">标普500</span>
+                <span class="row-score" style="color:#FFB6C1">+0.48</span>
+                <span class="row-pe">28% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-16.8%</span>
+                <span class="row-tool">1x usSH</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.50 | 动量+0.29 | 情绪+0.30 | 叙事+0.28</div>
+                    <div class="rd-col"><b>做空标普500，买入1x反向ETF usSH(标普500做空ETF(SH)/三倍做空(SPXU))，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 28% (正常15~35x) | PE分位 28% | PB分位 31%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">券商</span>
+                <span class="row-score" style="color:#90EE90">-0.35</span>
+                <span class="row-pe">64% <span class="row-range">(1~2.5x)</span></span>
+                <span class="row-ret">+12.2%</span>
+                <span class="row-tool">sh512880</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.29 | 动量-0.10 | 情绪-0.30 | 叙事-0.25</div>
+                    <div class="rd-col"><b>做多券商，买入ETF sh512880(证券ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PB分位 64% (正常1~2.5x) | PE分位 66% | PB分位 64%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">食品饮料</span>
+                <span class="row-score" style="color:#90EE90">-0.42</span>
+                <span class="row-pe">69% <span class="row-range">(25~45x)</span></span>
+                <span class="row-ret">+14.7%</span>
+                <span class="row-tool">sh515170</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.32 | 动量-0.43 | 情绪-0.39 | 叙事-0.36</div>
+                    <div class="rd-col"><b>做多食品饮料，买入ETF sh515170(食品饮料ETF)，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 69% (正常25~45x) | PE分位 69% | PB分位 67%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">通信</span>
+                <span class="row-score" style="color:#FFB6C1">+0.44</span>
+                <span class="row-pe">35% <span class="row-range">(2~5x)</span></span>
+                <span class="row-ret">-15.4%</span>
+                <span class="row-tool">融券 sh515880</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.29 | 动量+0.23 | 情绪+0.27 | 叙事+0.29</div>
+                    <div class="rd-col"><b>做空通信，ETF融券 sh515880，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PS分位 35% (正常2~5x) | PE分位 30% | PB分位 32%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #90EE90">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#90EE90">B+ 观察偏多</span>
+                <span class="row-name">10年美债</span>
+                <span class="row-score" style="color:#90EE90">-0.38</span>
+                <span class="row-pe">67% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">+13.3%</span>
+                <span class="row-tool">usTLT</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值-0.37 | 动量-0.14 | 情绪-0.27 | 叙事-0.26</div>
+                    <div class="rd-col"><b>做多10年美债，买入ETF usTLT(20+年美债ETF(TLT)/7-10年美债(IEF))，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 67% (正常15~35x) | PE分位 67% | PB分位 65%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+        <div class="signal-row" onclick="var d=this.querySelector('.row-detail');if(d)d.classList.toggle('active')" style="border-left:4px solid #FFB6C1">
+            <div class="row-main">
+                <span class="row-icon">⚪</span>
+                <span class="row-level" style="color:#FFB6C1">B- 观察偏空</span>
+                <span class="row-name">美元指数</span>
+                <span class="row-score" style="color:#FFB6C1">+0.40</span>
+                <span class="row-pe">32% <span class="row-range">(15~35x)</span></span>
+                <span class="row-ret">-14.0%</span>
+                <span class="row-tool">usUDN</span>
+                <span class="row-pos">5.0%</span>
+            </div>
+            <div class="row-detail">
+                <div class="row-detail-inner">
+                    <div class="rd-col"><b>四维评分</b> 估值+0.27 | 动量+0.35 | 情绪+0.25 | 叙事+0.28</div>
+                    <div class="rd-col"><b>做空美元指数，反向ETF/期权 usUDN，仓位5.0%</b></div>
+                    <div class="rd-col"><b>PE分位 32% (正常15~35x) | PE分位 32% | PB分位 34%</b></div>
+                    <div class="rd-col"><b>确认条件</b> 估值确认<br>RSI确认</div>
+                </div>
+            </div>
+        </div>
+                    <div class="section-divider"><span>🟡 观察区</span></div>
+                    
+                </div>
+            </div>
+        
+            <!-- Trading Suggestions -->
+            <div class="section">
+                <div class="section-title">📋 今日调仓建议</div>
+                <div class="trade-list">
+                    
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">银行</span>
+                <span class="trade-desc">做多银行，买入ETF sh512800(银行ETF华宝)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">医药生物</span>
+                <span class="trade-desc">做多医药生物，买入ETF sh512010(医药ETF)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">半导体</span>
+                <span class="trade-desc">做空半导体，买Put sz159995(芯片ETF)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">新能源</span>
+                <span class="trade-desc">做多新能源，买入ETF sh516160(新能源ETF)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">黄金</span>
+                <span class="trade-desc">做空黄金，买入2x反向ETF usGLL(黄金两倍做空ETF)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">恒生科技</span>
+                <span class="trade-desc">做多恒生科技，买入ETF(QDII/港股) sh513130(恒生科技ETF(513130)/南方恒生科技(03033))，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">科技</span>
+                <span class="trade-desc">做空科技，期权Put usXLK，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">房地产</span>
+                <span class="trade-desc">做多房地产，买入ETF sh512200(房地产ETF)，仓位5.0%</span>
+            </div>
+            <div class="trade-item" style="border-left: 4px solid #4CAF50">
+                <span class="trade-action" style="color: #4CAF50">新开</span>
+                <span class="trade-asset">原油(WTI)</span>
+                <span class="trade-desc">做空原油(WTI)，买入2x反向ETF usSCO(原油两倍做空ETF)，仓位5.0%</span>
+            </div>
+                </div>
+            </div>
+        
+            <!-- Footer -->
+            <div class="footer">
+                <p>⚠️ 本仪表盘仅供研究参考，不构成投资建议。做空风险极高，请谨慎决策。</p>
+                <p>数据来源：腾讯自选股、东方财富、同花顺 | 生成时间：13:12</p>
+            </div>
+        </div>
+    
+    </body>
+    </html>

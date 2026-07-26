@@ -1,0 +1,39 @@
+name: Daily Dashboard Update
+
+on:
+  schedule:
+    # 周一至周五 16:30 CST (08:30 UTC)
+    - cron: '30 8 * * 1-5'
+  workflow_dispatch:  # 手动触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          pip install numpy
+      
+      - name: Generate dashboard
+        run: |
+          python scripts/daily_run.py --mock 2>&1 || echo "Mock mode fallback"
+      
+      - name: Copy to docs folder
+        run: |
+          mkdir -p docs
+          cp output/dashboard_*.html docs/index.html 2>/dev/null || true
+          cp output/daily_report_*.md docs/ 2>/dev/null || true
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs
+          keep_files: true
