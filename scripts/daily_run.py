@@ -21,6 +21,7 @@ from datetime import datetime
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from config.settings import LOG_CONFIG, OUTPUT_DIR, LOG_DIR, DATA_DIR, DB_PATH
+GITHUB_PAGES_URL = "https://lxbluke.github.io/extreme-reversal-dashboard/"
 from data.collector import DataCollector, quick_collect_a_share
 from data.database import SignalDatabase
 from models.composite import BatchScorer, generate_signal_summary, get_extreme_signals
@@ -304,7 +305,7 @@ def run_daily(quick: bool = False, mock: bool = False):
     import json
     summary_json = {
         "date": today,
-        "dashboard_path": str(dashboard_path),
+        "dashboard_path": str(dashboard_path),"github_url": GITHUB_PAGES_URL,
         "total_signals": signal_summary.get("total_signals", 0),
         "s_plus": signal_summary.get("s_plus_count", 0),
         "s_minus": signal_summary.get("s_minus_count", 0),
@@ -326,7 +327,7 @@ def run_daily(quick: bool = False, mock: bool = False):
             s_text += f" {level}{count}"
     if not s_text:
         s_text = " 中性"
-    tdocs_row = f"{today}|{dashboard_path}|{s_text.strip()}"
+    tdocs_row = f"{today}|{GITHUB_PAGES_URL}|{s_text.strip()}"
     tdocs_path = DATA_DIR / "tdocs_row.txt"
     with open(tdocs_path, "w", encoding="utf-8") as f:
         f.write(tdocs_row)
@@ -359,7 +360,7 @@ def run_daily(quick: bool = False, mock: bool = False):
         "signal_summary": signal_summary,
         "trading_suggestions": trading_suggestions,
         "report_path": str(report_path),
-        "dashboard_path": str(dashboard_path),
+        "dashboard_path": str(dashboard_path),"github_url": GITHUB_PAGES_URL,
         "elapsed_seconds": elapsed,
         "tdocs_url": "https://docs.qq.com/doc/DR1RqWnN3dGVocUxJ",  # 腾讯文档链接
     }

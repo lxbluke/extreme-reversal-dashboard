@@ -33,7 +33,7 @@ case "${1:-}" in
             echo -e "${YELLOW}cron任务已存在，跳过${NC}"
         else
             # 创建cron任务：周一至周五 16:30 运行
-            CRON_JOB="30 16 * * 1-5 cd $SCRIPT_DIR && python3.11 scripts/daily_run.py >> logs/cron.log 2>&1"
+            CRON_JOB="30 16 * * 1-5 cd $SCRIPT_DIR && python3.11 scripts/daily_run.py && cp output/dashboard_*.html docs/index.html && cd $SCRIPT_DIR && git add -A && git commit -m \"每日更新 $(date +%Y-%m-%d)\" --allow-empty && git push >> logs/cron.log 2>&1"
             (echo "$EXISTING"; echo "$CRON_JOB") | crontab -
             echo -e "${GREEN}cron任务已添加：周一至周五 16:30 自动更新${NC}"
         fi
@@ -117,7 +117,7 @@ fi
 # 设置cron（如果还没设置）
 if ! crontab -l 2>/dev/null | grep -q "extreme-reversal-strategy"; then
     echo -e "${YELLOW}设置cron定时任务...${NC}"
-    CRON_JOB="30 16 * * 1-5 cd $SCRIPT_DIR && python3.11 scripts/daily_run.py >> logs/cron.log 2>&1"
+    CRON_JOB="30 16 * * 1-5 cd $SCRIPT_DIR && python3.11 scripts/daily_run.py && cp output/dashboard_*.html docs/index.html && cd $SCRIPT_DIR && git add -A && git commit -m \"每日更新 $(date +%Y-%m-%d)\" --allow-empty && git push >> logs/cron.log 2>&1"
     (crontab -l 2>/dev/null || true; echo "$CRON_JOB") | crontab -
     echo -e "${GREEN}✅ cron已设置：周一至周五 16:30 自动更新${NC}"
     echo -e "${YELLOW}📝 每日更新后，腾讯文档链接需手动刷新页面查看最新记录${NC}"
