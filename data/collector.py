@@ -179,21 +179,29 @@ class DataCollector:
                 self.collection_errors.append(f"sector_{sector_name}: {e}")
                 sectors_data[sector_name] = {"name": sector_name, "pt_code": pt_code, "error": str(e)}
         
-        # 从sectors_data中提取资金流排名
-        fund_ranking = {"inflow_top5": [], "outflow_top5": []}
-        flows = []
-        for name, sd in sectors_data.items():
-            if name.startswith("_"):
-                continue
-            ff = sd.get("fund_flow", {})
-            mf = ff.get("main_flow")
-            if mf is not None:
-                flows.append({"name": name, "main_flow": mf})
+        # 从sectors_data中提取资金流排名（多维度）
+        fund_ranking = {"inflow_top5": [], "outflow_top5": [],
+                        "inflow_top5_5d": [], "outflow_top5_5d": [],
+                        "inflow_top5_10d": [], "outflow_top5_10d": []}
         
-        # 按主力净流入排序
-        flows.sort(key=lambda x: x["main_flow"], reverse=True)
-        fund_ranking["inflow_top5"] = flows[:5]
-        fund_ranking["outflow_top5"] = list(reversed(flows[-5:])) if len(flows) >= 5 else list(reversed(flows))
+        for period, period_key, top_key_in, top_key_out in [
+            ("main_flow", "1日", "inflow_top5", "outflow_top5"),
+            ("main_flow_5d", "5日", "inflow_top5_5d", "outflow_top5_5d"),
+            ("main_flow_10d", "10日", "inflow_top5_10d", "outflow_top5_10d"),
+        ]:
+            flows = []
+            for name, sd in sectors_data.items():
+                if name.startswith("_"):
+                    continue
+                ff = sd.get("fund_flow", {})
+                mf = ff.get(period_key)
+                if mf is not None:
+                    flows.append({"name": name, period_key: mf, "period": period})
+            
+            flows.sort(key=lambda x: x[period_key], reverse=True)
+            fund_ranking[top_key_in] = flows[:5]
+            fund_ranking[top_key_out] = list(reversed(flows[-5:])) if len(flows) >= 5 else list(reversed(flows))
+        
         sectors_data["_fund_ranking"] = fund_ranking
         
         return sectors_data

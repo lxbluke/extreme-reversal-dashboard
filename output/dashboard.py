@@ -380,29 +380,64 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
     a_count = signal_summary.get("a_plus_count", 0) + signal_summary.get("a_minus_count", 0)
     total_s = signal_summary.get("total_signals", 0)
     
-    # 板块资金流排名
+    # 板块资金流排名（多维度）
     inflow_html = ""
     outflow_html = ""
+    flow_note = ""
     if sector_fund_ranking:
+        # 当日TOP5
         for item in sector_fund_ranking.get("inflow_top5", []):
             name = item.get("name", "")
-            flow = item.get("main_flow", 0)
+            flow = item.get("1日", 0)
             flow_str = _format_flow(flow)
             inflow_html += f'<span class="fund-chip-inflow">{name} {flow_str}</span> '
         for item in sector_fund_ranking.get("outflow_top5", []):
             name = item.get("name", "")
-            flow = item.get("main_flow", 0)
+            flow = item.get("1日", 0)
             flow_str = _format_flow(flow)
             outflow_html += f'<span class="fund-chip-outflow">{name} {flow_str}</span> '
+        
+        # 5日趋势TOP5
+        in5_html = ""
+        out5_html = ""
+        for item in sector_fund_ranking.get("inflow_top5_5d", []):
+            name = item.get("name", "")
+            flow = item.get("5日", 0)
+            in5_html += f'<span class="fund-chip-inflow">{name} {_format_flow(flow)}</span> '
+        for item in sector_fund_ranking.get("outflow_top5_5d", []):
+            name = item.get("name", "")
+            flow = item.get("5日", 0)
+            out5_html += f'<span class="fund-chip-outflow">{name} {_format_flow(flow)}</span> '
+        
+        # 标注持续流入/流出信号
+        flow_note = ""
+        if in5_html and inflow_html:
+            # 比较当日和5日TOP5，找出同时出现在两个列表中的板块
+            day1_names = {item.get("name","") for item in sector_fund_ranking.get("inflow_top5",[])}
+            day5_names = {item.get("name","") for item in sector_fund_ranking.get("inflow_top5_5d",[])}
+            sustained = day1_names & day5_names
+            if sustained:
+                flow_note += f'🟢 持续流入: {", ".join(sustained)} '
+            day1_out = {item.get("name","") for item in sector_fund_ranking.get("outflow_top5",[])}
+            day5_out = {item.get("name","") for item in sector_fund_ranking.get("outflow_top5_5d",[])}
+            sustained_out = day1_out & day5_out
+            if sustained_out:
+                flow_note += f'🔴 持续流出: {", ".join(sustained_out)}'
     
     # 组装完整HTML
-        # 板块资金流向卡片HTML
+    # 板块资金流向卡片HTML（多日）
     sector_fund_card = ""
     if inflow_html:
-        sector_fund_card = '''                <div class="market-card" style="grid-column: span 2;">
-                    <div class="label" style="font-size:13px">📈 板块主力资金流向 TOP5</div>
-                    <div class="label" style="margin-top:4px;font-size:12px;line-height:1.8">''' + inflow_html + '''</div>
-                    <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8">''' + outflow_html + '''</div>
+        sector_fund_card = f'''                <div class="market-card" style="grid-column: span 2;">
+                    <div class="label" style="font-size:13px">📈 板块主力资金流向</div>
+                    <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8"><b>当日流入TOP</b> {inflow_html}</div>
+                    <div class="label" style="font-size:12px;line-height:1.8"><b>当日流出TOP</b> {outflow_html}</div>
+                    <details style="margin-top:4px;font-size:12px;color:var(--text-secondary)">
+                        <summary style="cursor:pointer">📊 查看5日趋势</summary>
+                        <div style="margin-top:4px;line-height:1.8"><b>5日流入TOP</b> {in5_html}</div>
+                        <div style="line-height:1.8"><b>5日流出TOP</b> {out5_html}</div>
+                        <div style="margin-top:4px;color:{'#4CAF50' if flow_note else 'var(--text-secondary)'}">{flow_note}</div>
+                    </details>
                 </div>
 '''
     
@@ -654,10 +689,24 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
                 <div class="section-title" style="font-size:16px; margin-bottom:8px">📊 市场环境速览</div>
                 <div class="market-overview">
                     <div class="market-card" style="{erp_style}">
-                        <div class="label">股债性价比 (ERP)</div>
+                        <div class="label">股债性价比 (ERP)<span style="font-size:11px;color:var(--text-secondary);font-weight:normal;margin-left:4px;cursor:pointer" onclick="var p=this.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;p.style.display=p.style.display=='none'?'block':'none'">[?]</span></div>
                         <div class="value" style="font-size:22px">{erp_value_display}</div>
                         <div class="label" style="font-size:12px; margin-top:4px">{erp_advice}</div>
                         <div class="label" style="font-size:11px">{erp_status_text}{f' | 10年分位{erp_10y_pct:.0f}%' if erp_10y_pct else ''}</div>
+                        <div class="label">股债性价比 (ERP)<span style="font-size:11px;color:var(--text-secondary);font-weight:normal;margin-left:4px;cursor:pointer" onclick="var p=this.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;p.style.display=p.style.display=='none'?'block':'none'">[?]</span></div>
+                        <div class="value" style="font-size:22px">{erp_value_display}</div>
+                        <div class="label" style="font-size:12px; margin-top:4px">{erp_advice}</div>
+                        <div class="label" style="font-size:11px">{erp_status_text}{f' | 10年分位{erp_10y_pct:.0f}%' if erp_10y_pct else ''}</div>
+                    <div style="display:none;margin-top:6px;padding:6px;background:rgba(0,0,0,0.2);border-radius:4px;font-size:11px;line-height:1.6;color:var(--text-secondary);text-align:left">
+                        <b>ERP = 1/PE - 10年国债收益率</b><br>
+                        ERP越高 → 股票越便宜 → 买股票<br>
+                        ERP越低 → 股票越贵 → 买债券<br>
+                        <span style="color:#006400">&gt;5% 极度低估 买股票</span><br>
+                        <span style="color:#4CAF50">3~5% 有吸引力</span><br>
+                        <span style="color:#FFC107">2~3% 中性</span><br>
+                        <span style="color:#FF9800">1~2% 偏高估</span><br>
+                        <span style="color:#F44336">&lt;1% 极度高估 买债券</span>
+                    </div>
                     </div>
                     <div class="market-card">
                         <div class="label">市场情绪 (涨/跌)</div>
@@ -728,15 +777,36 @@ def generate_dashboard(signals: List[Dict], market_data: Dict,
             <!-- Charts -->
             <div class="charts-section">
                 <div class="chart-container">
-                    <h3 style="margin-bottom:16px">📊 极端信号评分分布</h3>
+                    <h3 style="margin-bottom:8px;font-size:15px">📊 信号评分总览</h3>
                     <div class="bar-chart">
-                        {bar_chart_extreme}
+                        {bar_chart_all}
+                    </div>
+                    <div class="chart-legend" style="margin-top:8px;font-size:11px;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:6px">
+                        <span style="color:#006400">■ S+强做多</span>
+                        <span style="color:#28A745">■ A+做多</span>
+                        <span style="color:#90EE90">■ B+观察偏多</span>
+                        <span style="color:#FFB6C1">■ B-观察偏空</span>
+                        <span style="color:#DC3545">■ A-做空</span>
+                        <span style="color:#8B0000">■ S-强做空</span>
+                        <span style="margin-left:8px">| 评分范围: -1.0 ~ +1.0</span>
+                        <span>| 正值=高估(做空) 负值=低估(做多)</span>
                     </div>
                 </div>
                 <div class="chart-container">
-                    <h3 style="margin-bottom:16px">📈 信号评分总览</h3>
-                    <div class="bar-chart">
-                        {bar_chart_all}
+                    <h3 style="margin-bottom:8px;font-size:15px">📈 股价性价比 (ERP)</h3>
+                    <div style="font-size:13px;line-height:1.8;color:var(--text-secondary)">
+                        <div>公式：ERP = 1/PE - 10年期国债收益率</div>
+                        <div>衡量「买股票比买债券多赚多少」</div>
+                        <div style="margin-top:6px">
+                            <span style="color:#006400">ERP > 5%</span> = 股票极度低估，应买股票 ⬅️<br>
+                            <span style="color:#4CAF50">ERP 3%~5%</span> = 股票有吸引力<br>
+                            <span style="color:#FFC107">ERP 2%~3%</span> = 中性区间<br>
+                            <span style="color:#FF9800">ERP 1%~2%</span> = 股票偏高估<br>
+                            <span style="color:#F44336">ERP < 1%</span> = 股票极度高估，应买债券 ➡️
+                        </div>
+                        <div style="margin-top:6px;padding:6px;background:rgba(255,255,255,0.04);border-radius:4px">
+                            当前ERP: <b>{erp_value_display}</b> — {erp_status.get("advice","")}
+                        </div>
                     </div>
                 </div>
             </div>

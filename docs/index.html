@@ -212,7 +212,7 @@
             <!-- Header -->
             <div class="header">
                 <h1>🌐 全球大类资产极端状态反转策略</h1>
-                <div class="subtitle">2026-07-26 收盘日报 | 生成时间 13:12 CST | 仅供研究参考</div>
+                <div class="subtitle">2026-07-26 收盘日报 | 生成时间 13:26 CST | 仅供研究参考</div>
             </div>
         
             <!-- 市场环境速览 -->
@@ -220,10 +220,24 @@
                 <div class="section-title" style="font-size:16px; margin-bottom:8px">📊 市场环境速览</div>
                 <div class="market-overview">
                     <div class="market-card" style="color:#4CAF50">
-                        <div class="label">股债性价比 (ERP)</div>
+                        <div class="label">股债性价比 (ERP)<span style="font-size:11px;color:var(--text-secondary);font-weight:normal;margin-left:4px;cursor:pointer" onclick="var p=this.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;p.style.display=p.style.display=='none'?'block':'none'">[?]</span></div>
                         <div class="value" style="font-size:22px">3.04%</div>
                         <div class="label" style="font-size:12px; margin-top:4px">股票性价比中性，按策略执行</div>
                         <div class="label" style="font-size:11px">ERP 3.0%（股债中性合理）</div>
+                        <div class="label">股债性价比 (ERP)<span style="font-size:11px;color:var(--text-secondary);font-weight:normal;margin-left:4px;cursor:pointer" onclick="var p=this.parentElement.nextElementSibling.nextElementSibling.nextElementSibling.nextElementSibling;p.style.display=p.style.display=='none'?'block':'none'">[?]</span></div>
+                        <div class="value" style="font-size:22px">3.04%</div>
+                        <div class="label" style="font-size:12px; margin-top:4px">股票性价比中性，按策略执行</div>
+                        <div class="label" style="font-size:11px">ERP 3.0%（股债中性合理）</div>
+                    <div style="display:none;margin-top:6px;padding:6px;background:rgba(0,0,0,0.2);border-radius:4px;font-size:11px;line-height:1.6;color:var(--text-secondary);text-align:left">
+                        <b>ERP = 1/PE - 10年国债收益率</b><br>
+                        ERP越高 → 股票越便宜 → 买股票<br>
+                        ERP越低 → 股票越贵 → 买债券<br>
+                        <span style="color:#006400">&gt;5% 极度低估 买股票</span><br>
+                        <span style="color:#4CAF50">3~5% 有吸引力</span><br>
+                        <span style="color:#FFC107">2~3% 中性</span><br>
+                        <span style="color:#FF9800">1~2% 偏高估</span><br>
+                        <span style="color:#F44336">&lt;1% 极度高估 买债券</span>
+                    </div>
                     </div>
                     <div class="market-card">
                         <div class="label">市场情绪 (涨/跌)</div>
@@ -237,9 +251,15 @@
                         <div class="label" style="font-size:11px">当日主力净流入 | 北向仅季度级别</div>
                     </div>
                                     <div class="market-card" style="grid-column: span 2;">
-                    <div class="label" style="font-size:13px">📈 板块主力资金流向 TOP5</div>
-                    <div class="label" style="margin-top:4px;font-size:12px;line-height:1.8"><span class="fund-chip-inflow">银行 +123.5亿</span> <span class="fund-chip-inflow">券商 +98.8亿</span> <span class="fund-chip-inflow">煤炭 +56.8亿</span> <span class="fund-chip-inflow">公用事业 +34.6亿</span> <span class="fund-chip-inflow">钢铁 +12.3亿</span> </div>
-                    <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8"><span class="fund-chip-outflow">电子 -557.8亿</span> <span class="fund-chip-outflow">医药生物 -321.1亿</span> <span class="fund-chip-outflow">半导体 -284.6亿</span> <span class="fund-chip-outflow">计算机 -156.8亿</span> <span class="fund-chip-outflow">食品饮料 -98.8亿</span> </div>
+                    <div class="label" style="font-size:13px">📈 板块主力资金流向</div>
+                    <div class="label" style="margin-top:2px;font-size:12px;line-height:1.8"><b>当日流入TOP</b> <span class="fund-chip-inflow">银行 +123.5亿</span> <span class="fund-chip-inflow">券商 +98.8亿</span> <span class="fund-chip-inflow">煤炭 +56.8亿</span> <span class="fund-chip-inflow">公用事业 +34.6亿</span> <span class="fund-chip-inflow">钢铁 +12.3亿</span> </div>
+                    <div class="label" style="font-size:12px;line-height:1.8"><b>当日流出TOP</b> <span class="fund-chip-outflow">电子 -557.8亿</span> <span class="fund-chip-outflow">医药生物 -321.1亿</span> <span class="fund-chip-outflow">半导体 -284.6亿</span> <span class="fund-chip-outflow">计算机 -156.8亿</span> <span class="fund-chip-outflow">食品饮料 -98.8亿</span> </div>
+                    <details style="margin-top:4px;font-size:12px;color:var(--text-secondary)">
+                        <summary style="cursor:pointer">📊 查看5日趋势</summary>
+                        <div style="margin-top:4px;line-height:1.8"><b>5日流入TOP</b> <span class="fund-chip-inflow">银行 +456.8亿</span> <span class="fund-chip-inflow">煤炭 +212.3亿</span> <span class="fund-chip-inflow">券商 +123.5亿</span> <span class="fund-chip-inflow">公用事业 +98.8亿</span> <span class="fund-chip-inflow">钢铁 +45.7亿</span> </div>
+                        <div style="line-height:1.8"><b>5日流出TOP</b> <span class="fund-chip-outflow">电子 -1234.6亿</span> <span class="fund-chip-outflow">半导体 -987.7亿</span> <span class="fund-chip-outflow">医药生物 -765.4亿</span> <span class="fund-chip-outflow">计算机 -345.7亿</span> <span class="fund-chip-outflow">通信 -123.5亿</span> </div>
+                        <div style="margin-top:4px;color:#4CAF50">🟢 持续流入: 煤炭, 银行, 券商, 公用事业, 钢铁 🔴 持续流出: 电子, 半导体, 计算机, 医药生物</div>
+                    </details>
                 </div>
 
                     <div class="market-card">
@@ -299,21 +319,7 @@
             <!-- Charts -->
             <div class="charts-section">
                 <div class="chart-container">
-                    <h3 style="margin-bottom:16px">📊 极端信号评分分布</h3>
-                    <div class="bar-chart">
-                        <div class="bar-row"><span class="bar-label">银行</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.82</span></div>
-<div class="bar-row"><span class="bar-label">医药生物</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.65</span></div>
-<div class="bar-row"><span class="bar-label">半导体</span><div class="bar-track"><div class="bar-fill" style="width:78%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.78</span></div>
-<div class="bar-row"><span class="bar-label">新能源</span><div class="bar-track"><div class="bar-fill" style="width:58%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.58</span></div>
-<div class="bar-row"><span class="bar-label">黄金</span><div class="bar-track"><div class="bar-fill" style="width:62%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.62</span></div>
-<div class="bar-row"><span class="bar-label">恒生科技</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.55</span></div>
-<div class="bar-row"><span class="bar-label">科技</span><div class="bar-track"><div class="bar-fill" style="width:52%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.52</span></div>
-<div class="bar-row"><span class="bar-label">房地产</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.72</span></div>
-<div class="bar-row"><span class="bar-label">原油(WTI)</span><div class="bar-track"><div class="bar-fill" style="width:55%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.55</span></div>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <h3 style="margin-bottom:16px">📈 信号评分总览</h3>
+                    <h3 style="margin-bottom:8px;font-size:15px">📊 信号评分总览</h3>
                     <div class="bar-chart">
                         <div class="bar-row"><span class="bar-label">银行</span><div class="bar-track"><div class="bar-fill" style="width:82%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.82</span></div>
 <div class="bar-row"><span class="bar-label">医药生物</span><div class="bar-track"><div class="bar-fill" style="width:65%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.65</span></div>
@@ -327,6 +333,33 @@
 <div class="bar-row"><span class="bar-label">房地产</span><div class="bar-track"><div class="bar-fill" style="width:72%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.72</span></div>
 <div class="bar-row"><span class="bar-label">食品饮料</span><div class="bar-track"><div class="bar-fill" style="width:42%;background:#4CAF50"></div></div><span class="bar-score" style="color:#4CAF50">-0.42</span></div>
 <div class="bar-row"><span class="bar-label">通信</span><div class="bar-track"><div class="bar-fill" style="width:44%;background:#DC3545"></div></div><span class="bar-score" style="color:#DC3545">+0.44</span></div>
+                    </div>
+                    <div class="chart-legend" style="margin-top:8px;font-size:11px;color:var(--text-secondary);display:flex;flex-wrap:wrap;gap:6px">
+                        <span style="color:#006400">■ S+强做多</span>
+                        <span style="color:#28A745">■ A+做多</span>
+                        <span style="color:#90EE90">■ B+观察偏多</span>
+                        <span style="color:#FFB6C1">■ B-观察偏空</span>
+                        <span style="color:#DC3545">■ A-做空</span>
+                        <span style="color:#8B0000">■ S-强做空</span>
+                        <span style="margin-left:8px">| 评分范围: -1.0 ~ +1.0</span>
+                        <span>| 正值=高估(做空) 负值=低估(做多)</span>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <h3 style="margin-bottom:8px;font-size:15px">📈 股价性价比 (ERP)</h3>
+                    <div style="font-size:13px;line-height:1.8;color:var(--text-secondary)">
+                        <div>公式：ERP = 1/PE - 10年期国债收益率</div>
+                        <div>衡量「买股票比买债券多赚多少」</div>
+                        <div style="margin-top:6px">
+                            <span style="color:#006400">ERP > 5%</span> = 股票极度低估，应买股票 ⬅️<br>
+                            <span style="color:#4CAF50">ERP 3%~5%</span> = 股票有吸引力<br>
+                            <span style="color:#FFC107">ERP 2%~3%</span> = 中性区间<br>
+                            <span style="color:#FF9800">ERP 1%~2%</span> = 股票偏高估<br>
+                            <span style="color:#F44336">ERP < 1%</span> = 股票极度高估，应买债券 ➡️
+                        </div>
+                        <div style="margin-top:6px;padding:6px;background:rgba(255,255,255,0.04);border-radius:4px">
+                            当前ERP: <b>3.04%</b> — 股票性价比中性，按策略执行
+                        </div>
                     </div>
                 </div>
             </div>
@@ -832,7 +865,7 @@
             <!-- Footer -->
             <div class="footer">
                 <p>⚠️ 本仪表盘仅供研究参考，不构成投资建议。做空风险极高，请谨慎决策。</p>
-                <p>数据来源：腾讯自选股、东方财富、同花顺 | 生成时间：13:12</p>
+                <p>数据来源：腾讯自选股、东方财富、同花顺 | 生成时间：13:26</p>
             </div>
         </div>
     
